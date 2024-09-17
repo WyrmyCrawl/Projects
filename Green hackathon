@@ -1,0 +1,56 @@
+#include <Servo.h>
+
+Servo moldServo;  // Create a servo object
+
+const int trigPin = 9;  // Trigger pin for the ultrasonic sensor
+const int echoPin = 10;  // Echo pin for the ultrasonic sensor
+
+void setup() {
+  moldServo.attach(6);  // Attach the servo to pin 6
+  pinMode(trigPin, OUTPUT);  // Set trigger pin as OUTPUT
+  pinMode(echoPin, INPUT);  // Set echo pin as INPUT
+  Serial.begin(9600);  // Start serial communication
+}
+
+void loop() {
+  long duration, distance;
+
+  // Clear the trigger
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  
+  // Set the trigger to HIGH for 10 microseconds
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  // Read the echo pin
+  duration = pulseIn(echoPin, HIGH);
+  
+  // Calculate the distance in cm
+  distance = (duration * 0.034) / 2;
+
+  Serial.print("Distance: ");
+  Serial.println(distance);
+  
+  // Determine the mold position based on the distance
+  int moldPosition = getMoldPosition(distance);
+  moldServo.write(moldPosition);  // Rotate the servo to the calculated position
+  
+  delay(2000);  // Wait before the next measurement
+}
+
+// Function to determine the mold position based on distance
+int getMoldPosition(long distance) {
+  if (distance < 10) {
+    return 0;   // Position for small mold
+  } else if (distance >= 10 && distance < 20) {
+    return 45;  // Position for medium mold
+  } else if (distance >= 20 && distance < 30) {
+    return 90;  // Position for large mold
+  } else if (distance >= 30 && distance < 40) {
+    return 135; // Position for extra-large mold
+  } else {
+    return 180; // Default position (no mold or out of range)
+  }
+}
